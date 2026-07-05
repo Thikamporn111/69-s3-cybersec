@@ -2,4 +2,4 @@
 
 ## My Information
 
-- Thikamporn Meehirun
+- Thikamporn Meehiraun
