@@ -1,1 +1,21 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: 69-s3-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: prawee
+      POSTGRES_DB: prawee
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: 69-s3-admin
+    ports:
+      - "8083:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    depends_on:
+      - postgres
