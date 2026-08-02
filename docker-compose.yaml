@@ -1,13 +1,13 @@
 services:
   postgres:
     image: postgres:17
-    container_name: 69-s3-postgres
+    container_name: 69-s3-db
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      POSTGRES_USER: prawee
-      POSTGRES_DB: prawee
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_DB: ${DATABASE_DB}
 
   pgadmin:
     image: dpage/pgadmin4:latest
