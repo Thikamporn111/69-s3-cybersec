@@ -1,0 +1,72 @@
+# Strapi Admin + Users & Permissions API (Example)
+
+@baseUrl = http://localhost:9093
+
+# กรอกข้อมูล ADMIN ของเครื่องที่นำโปรเจกต์ไปรัน
+@adminEmail =
+@adminPassword =
+
+# กรอกข้อมูล USER ที่ต้องการใช้ทดสอบ
+@userName =
+@userEmail =
+@userPassword =
+
+# ============================================================
+# ADMIN - บัญชีผู้ดูแล Strapi (คนละบัญชีกับ User ด้านล่าง)
+# ============================================================
+
+## Admin Login - รับ token สำหรับจัดการ Strapi Admin
+# @name adminLogin
+POST {{baseUrl}}/admin/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}",
+  "rememberMe": true
+}
+
+###
+
+# ============================================================
+# USER - บัญชีผู้ใช้งานทั่วไปของแอป (Strapi Users & Permissions)
+# ============================================================
+
+## User Sign Up - สร้างผู้ใช้จริงใน PostgreSQL
+# @name signup
+POST {{baseUrl}}/api/auth/local/register
+Content-Type: application/json
+
+{
+  "username": "{{userName}}",
+  "email": "{{userEmail}}",
+  "password": "{{userPassword}}"
+}
+
+###
+
+## User Login - รับ JWT จาก Strapi
+# @name login
+POST {{baseUrl}}/api/auth/local
+Content-Type: application/json
+
+{
+  "identifier": "{{userEmail}}",
+  "password": "{{userPassword}}"
+}
+
+###
+
+## User Forgot Password - ส่งคำขอผ่าน Strapi
+POST {{baseUrl}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{userEmail}}"
+}
+
+###
+
+## User Profile - ใช้ JWT จากผล User Login ด้านบน
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{login.response.body.$.jwt}}

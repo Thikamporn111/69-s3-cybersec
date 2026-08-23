@@ -1,0 +1,28 @@
+{
+  "name": "69-s3-strapi",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "strapi build",
+    "develop": "strapi develop",
+    "start": "strapi start"
+  },
+  "dependencies": {
+    "@strapi/plugin-users-permissions": "latest",
+    "@strapi/provider-email-nodemailer": "latest",
+    "@strapi/strapi": "latest",
+    "better-sqlite3": "latest",
+    "pg": "latest",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.30.3",
+    "styled-components": "6.1.19"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=24.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "69s3cybersecstrapi0000000000000000"
+  }
+}
