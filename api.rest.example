@@ -3,8 +3,8 @@
 @baseUrl = http://localhost:9093
 
 # กรอกข้อมูล ADMIN ของเครื่องที่นำโปรเจกต์ไปรัน
-@adminEmail =
-@adminPassword =
+@adminEmail = {{$dotenv STRAPI_ADMIN_EMAIL}}
+@adminPassword = {{$dotenv STRAPI_ADMIN_PASSWORD}}
 
 # กรอกข้อมูล USER ที่ต้องการใช้ทดสอบ
 @userName =
