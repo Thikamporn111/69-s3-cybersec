@@ -1,62 +1,173 @@
+name: 69-s3-cybersec
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
+  proxy:
+    image: nginxinc/nginx-unprivileged:1.30.4-alpine3.24
+    container_name: 69-s3-proxy
+    depends_on:
+      strapi:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${APP_PORT:-9093}:8443"
+    volumes:
+      - type: bind
+        source: ./security/nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+      - type: bind
+        source: ./security/certs
+        target: /etc/nginx/certs
+        read_only: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 128m
+    cpus: 0.50
+    networks:
+      - edge
+      - app
+
   db:
-    image: postgres:16-alpine
+    image: postgres:16-alpine3.24
     container_name: 69-s3-db
     ports:
-      - "${DATABASE_HOST_PORT:-54327}:5432"
+      - "127.0.0.1:${DATABASE_HOST_PORT:-54327}:5432"
     environment:
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_DB=${DATABASE_DB}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      POSTGRES_USER: ${DATABASE_USER:?Set DATABASE_USER in .env}
+      POSTGRES_DB: ${DATABASE_DB:?Set DATABASE_DB in .env}
     volumes:
       - "${POSTGRES_DATA_PATH:-./data/postgres}:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *default-logging
+    stop_grace_period: 30s
+    shm_size: 128m
+    mem_limit: 512m
+    cpus: 1.00
+    networks:
+      - data
+      - db_host
 
   pgadmin:
     image: dpage/pgadmin4:9.16
     container_name: 69-s3-admin
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
-      - "${PGADMIN_PORT:-8083}:80"
+      - "127.0.0.1:${PGADMIN_PORT:-8083}:8080"
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?Set PGADMIN_EMAIL in .env}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?Set PGADMIN_PASSWORD in .env}
+      PGADMIN_LISTEN_PORT: "8080"
+      PGADMIN_DISABLE_POSTFIX: "1"
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+      PGADMIN_CONFIG_WTF_CSRF_ENABLED: "True"
+      PGADMIN_CONFIG_SESSION_COOKIE_SAMESITE: "'Lax'"
+      PGADMIN_CONFIG_SESSION_COOKIE_SECURE: "False"
+      PGADMIN_CONFIG_PASSWORD_LENGTH_MIN: "12"
+      PGADMIN_CONFIG_MAX_LOGIN_ATTEMPTS: "5"
+      PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: "False"
     volumes:
       - "${PGADMIN_DATA_PATH:-./data/pgadmin}:/var/lib/pgadmin"
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 512m
+    cpus: 0.75
+    networks:
+      - data
+      - pgadmin_host
 
   strapi:
     build:
       context: ./strapi
     container_name: 69-s3-strapi
     depends_on:
-      - db
-      - mailpit
-    ports:
-      - "${APP_PORT}:1337"
+      db:
+        condition: service_healthy
+    expose:
+      - "1337"
     volumes:
       - ./strapi/public/uploads:/opt/app/public/uploads
     environment:
-      - DATABASE_CLIENT=postgres
-      - DATABASE_NAME=${DATABASE_DB}
-      - DATABASE_HOST=${DATABASE_HOST:-db}
-      - DATABASE_PORT=${DATABASE_INTERNAL_PORT:-5432}
-      - DATABASE_USERNAME=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - APP_KEYS=${STRAPI_APP_KEYS}
-      - API_TOKEN_SALT=${STRAPI_API_TOKEN_SALT}
-      - ADMIN_JWT_SECRET=${STRAPI_ADMIN_JWT_SECRET}
-      - TRANSFER_TOKEN_SALT=${STRAPI_TRANSFER_TOKEN_SALT}
-      - JWT_SECRET=${STRAPI_JWT_SECRET}
-      - SMTP_HOST=mailpit
-      - SMTP_PORT=1025
-      - SMTP_FROM=no-reply@cybersec.local
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 1337
+      XDG_CONFIG_HOME: /tmp/xdg-config
+      XDG_CACHE_HOME: /tmp/xdg-cache
+      PUBLIC_URL: "https://localhost:${APP_PORT:-9093}"
+      CORS_ORIGINS: "https://localhost:${APP_PORT:-9093},https://127.0.0.1:${APP_PORT:-9093}"
+      DATABASE_CLIENT: postgres
+      DATABASE_NAME: ${DATABASE_DB:?Set DATABASE_DB in .env}
+      DATABASE_HOST: ${DATABASE_HOST:-db}
+      DATABASE_PORT: ${DATABASE_INTERNAL_PORT:-5432}
+      DATABASE_USERNAME: ${DATABASE_USER:?Set DATABASE_USER in .env}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      APP_KEYS: ${STRAPI_APP_KEYS:?Set STRAPI_APP_KEYS in .env}
+      API_TOKEN_SALT: ${STRAPI_API_TOKEN_SALT:?Set STRAPI_API_TOKEN_SALT in .env}
+      ADMIN_JWT_SECRET: ${STRAPI_ADMIN_JWT_SECRET:?Set STRAPI_ADMIN_JWT_SECRET in .env}
+      TRANSFER_TOKEN_SALT: ${STRAPI_TRANSFER_TOKEN_SALT:?Set STRAPI_TRANSFER_TOKEN_SALT in .env}
+      JWT_SECRET: ${STRAPI_JWT_SECRET:?Set STRAPI_JWT_SECRET in .env}
+      JWT_EXPIRES_IN: 1h
+      AUTH_RATE_LIMIT_INTERVAL_MS: 60000
+      AUTH_RATE_LIMIT_MAX: 5
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:1337/_health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+      - /opt/app/.tmp:size=64m,noexec,nosuid,nodev
+      - /opt/app/.cache:size=64m,noexec,nosuid,nodev
+      - /opt/app/database/migrations:size=16m,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *default-logging
+    stop_grace_period: 30s
+    mem_limit: 1g
+    cpus: 1.50
+    networks:
+      - app
+      - data
 
-  mailpit:
-    image: axllent/mailpit:v1.27
-    container_name: 69-s3-mailpit
-    ports:
-      - "${MAILPIT_WEB_PORT:-8025}:8025"
-    expose:
-      - "1025"
-    environment:
-      - MP_DATABASE=/data/mailpit.db
-    volumes:
-      - "${MAILPIT_DATA_PATH:-./data/mailpit}:/data"
+networks:
+  edge:
+    driver: bridge
+  app:
+    driver: bridge
+    internal: true
+  data:
+    driver: bridge
+    internal: true
+  db_host:
+    driver: bridge
+  pgadmin_host:
+    driver: bridge

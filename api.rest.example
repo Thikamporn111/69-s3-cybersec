@@ -1,23 +1,36 @@
-# Strapi Admin + Users & Permissions API (Example)
+# REST API request template
+# Fill in the blank values below before sending requests.
 
-@baseUrl = http://localhost:9093
+# Use the HTTPS origin, for example https://localhost:9093
+@baseUrl =
 
-# กรอกข้อมูล ADMIN ของเครื่องที่นำโปรเจกต์ไปรัน
-@adminEmail = {{$dotenv STRAPI_ADMIN_EMAIL}}
-@adminPassword = {{$dotenv STRAPI_ADMIN_PASSWORD}}
+@adminFirstName =
+@adminLastName =
+@adminEmail =
+@adminPassword =
 
-# กรอกข้อมูล USER ที่ต้องการใช้ทดสอบ
-@userName =
+@userUsername =
 @userEmail =
 @userPassword =
 
-# ============================================================
-# ADMIN - บัญชีผู้ดูแล Strapi (คนละบัญชีกับ User ด้านล่าง)
-# ============================================================
+### 1. Admin Section
 
-## Admin Login - รับ token สำหรับจัดการ Strapi Admin
+### 1.1 Register Admin
+# @name adminRegister
+POST {{baseUrl}}/admin/auth/register-admin
+Content-Type: application/json
+
+{
+  "firstname": "{{adminFirstName}}",
+  "lastname": "{{adminLastName}}",
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}",
+  "rememberMe": true
+}
+
+### 1.2 Admin Login
 # @name adminLogin
-POST {{baseUrl}}/admin/login
+POST {{baseUrl}}/admin/auth/login
 Content-Type: application/json
 
 {
@@ -26,28 +39,34 @@ Content-Type: application/json
   "rememberMe": true
 }
 
-###
-
-# ============================================================
-# USER - บัญชีผู้ใช้งานทั่วไปของแอป (Strapi Users & Permissions)
-# ============================================================
-
-## User Sign Up - สร้างผู้ใช้จริงใน PostgreSQL
-# @name signup
-POST {{baseUrl}}/api/auth/local/register
+### 1.3 Admin Forgot Password
+POST {{baseUrl}}/admin/auth/forgot-password
 Content-Type: application/json
 
 {
-  "username": "{{userName}}",
+  "email": "{{adminEmail}}"
+}
+
+### 1.4 Admin Profile
+GET {{baseUrl}}/admin/auth/users/me
+Authorization: Bearer {{adminLogin.response.body.$.data.token}}
+
+### 2. User Section
+
+### 2.1 User Register (Signup)
+# @name userRegister
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{userUsername}}",
   "email": "{{userEmail}}",
   "password": "{{userPassword}}"
 }
 
-###
-
-## User Login - รับ JWT จาก Strapi
-# @name login
-POST {{baseUrl}}/api/auth/local
+### 2.2 User Login
+# @name userLogin
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -55,9 +74,7 @@ Content-Type: application/json
   "password": "{{userPassword}}"
 }
 
-###
-
-## User Forgot Password - ส่งคำขอผ่าน Strapi
+### 2.3 User Forgot Password
 POST {{baseUrl}}/api/auth/forgot-password
 Content-Type: application/json
 
@@ -65,8 +82,6 @@ Content-Type: application/json
   "email": "{{userEmail}}"
 }
 
-###
-
-## User Profile - ใช้ JWT จากผล User Login ด้านบน
-GET {{baseUrl}}/api/users/me
-Authorization: Bearer {{login.response.body.$.jwt}}
+### 2.4 User Profile
+GET {{baseUrl}}/api/auth/users/me
+Authorization: Bearer {{userLogin.response.body.$.jwt}}

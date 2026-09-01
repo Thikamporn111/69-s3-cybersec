@@ -5,22 +5,22 @@
   "scripts": {
     "build": "strapi build",
     "develop": "strapi develop",
-    "start": "strapi start"
+    "start": "strapi start",
+    "audit:prod": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
-    "@strapi/plugin-users-permissions": "latest",
-    "@strapi/provider-email-nodemailer": "latest",
-    "@strapi/strapi": "latest",
-    "better-sqlite3": "latest",
-    "pg": "latest",
+    "@strapi/plugin-users-permissions": "5.52.2",
+    "@strapi/provider-email-nodemailer": "5.52.2",
+    "@strapi/strapi": "5.52.2",
+    "pg": "8.23.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-router-dom": "6.30.3",
-    "styled-components": "6.1.19"
+    "react-router-dom": "6.30.6",
+    "styled-components": "6.5.3"
   },
   "engines": {
-    "node": ">=20.0.0 <=24.x.x",
-    "npm": ">=6.0.0"
+    "node": ">=24.0.0 <25.0.0",
+    "npm": ">=10.0.0"
   },
   "strapi": {
     "uuid": "69s3cybersecstrapi0000000000000000"

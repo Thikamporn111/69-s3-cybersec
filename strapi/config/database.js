@@ -7,8 +7,15 @@ module.exports = ({ env }) => ({
       database: env('DATABASE_NAME'),
       user: env('DATABASE_USERNAME'),
       password: env('DATABASE_PASSWORD'),
-      ssl: false,
+      ssl: env.bool('DATABASE_SSL', false),
+      connectionTimeoutMillis: 10000,
     },
-    pool: { min: 0, max: 10 },
+    pool: {
+      min: 0,
+      max: 10,
+      acquireTimeoutMillis: 30000,
+      idleTimeoutMillis: 30000,
+    },
+    debug: false,
   },
 });

@@ -1,0 +1,12 @@
+.env
+.env.*
+node_modules
+.cache
+.tmp
+build
+dist
+.git
+.gitignore
+npm-debug.log*
+public/uploads/*
+!public/uploads/.gitkeep
