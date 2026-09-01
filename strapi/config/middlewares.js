@@ -4,6 +4,10 @@ module.exports = ({ env }) => [
   {
     name: 'strapi::security',
     config: {
+      // HSTS is scoped to the host name and ignores the port, so sending it
+      // for "localhost" would force HTTPS on every other localhost service on
+      // this machine. Enable it once this stack has a real hostname.
+      hsts: false,
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
