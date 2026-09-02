@@ -1,0 +1,11 @@
+# Git on Windows checks files out with CRLF by default. A shell script with
+# CRLF fails with "bad interpreter: /usr/bin/env bash^M", and nginx.conf is
+# read inside a Linux container, so keep these files LF on every platform.
+* text=auto
+
+*.sh        text eol=lf
+*.conf      text eol=lf
+*.cnf       text eol=lf
+Dockerfile  text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf

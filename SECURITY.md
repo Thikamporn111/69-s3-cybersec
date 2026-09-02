@@ -32,6 +32,12 @@ Use a different randomly generated value for every password and secret. Recommen
 
 Changing `DATABASE_PASSWORD` in `.env` does not update an already initialized PostgreSQL volume. Change the database role password first or recreate the lab database after making a backup.
 
+## Backups
+
+`scripts/backup-db.sh` writes an AES-256 encrypted `pg_dump` to `BACKUP_DIR`, then decrypts it again and checks the plaintext really is a dump before reporting success -- an unverified backup is a guess. `scripts/restore-db.sh` reverses it and asks for the database name first, because it drops every object. Both read `.env` as data rather than sourcing it, so a password containing shell metacharacters cannot execute.
+
+Set `BACKUP_PASSPHRASE` to its own random value and point `BACKUP_DIR` outside the project and outside any cloud-synced folder. `POSTGRES_DATA_PATH` is live data, not a backup, whatever the folder is called.
+
 ## Known gaps
 
 These are accepted for a single-machine lab and must be closed before the stack is reachable from anywhere else.
@@ -39,7 +45,6 @@ These are accepted for a single-machine lab and must be closed before the stack 
 - **No TLS.** Traffic to `127.0.0.1` cannot be intercepted from the network, so a certificate buys nothing here while making every request harder to make. `security/certs/openssl.cnf` generates a local certificate in one command when it is needed. Note that HSTS must stay off for a `localhost` certificate: HSTS is scoped to the host name and ignores the port, so it would force HTTPS on every other localhost service on the machine. Strapi's helmet default is disabled in `config/middlewares.js` and stripped again at the proxy for that reason.
 - **Public registration is open** and Strapi reports whether an email is already taken, which allows account enumeration. There is no CAPTCHA.
 - **No MFA or SSO** for administrators; Strapi Community Edition does not offer either.
-- **No encrypted, tested backups.** `POSTGRES_DATA_PATH` points at live data, not a backup.
 - **Password reset cannot be completed through email.** The nodemailer sink transport discards every message while still writing `reset_password_token` to the database, so lab verification means reading that column. Never carry that practice into a real deployment.
 
 ## Before any public deployment

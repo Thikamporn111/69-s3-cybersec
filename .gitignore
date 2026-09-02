@@ -29,3 +29,6 @@ Thumbs.db
 
 # Local pre-audit backups
 .backup-preaudit/
+
+# Local backup output
+backups/
