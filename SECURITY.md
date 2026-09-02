@@ -7,7 +7,7 @@ This project is hardened for a local classroom lab. No application can guarantee
 - Every published port binds to `127.0.0.1`. PostgreSQL publishes no port at all and sits on an internal network with no route to the internet.
 - Strapi is reachable only through an unprivileged Nginx reverse proxy.
 - Authentication endpoints have rate limiting in both Nginx and Strapi. The strict Nginx zone covers every route that accepts or consumes a credential, a reset token, or an email trigger, and tolerates a trailing slash so a slash-suffixed request cannot escape it.
-- Sessions are revocable. `jwtManagement` runs in `refresh` mode, so access tokens are short lived and refresh tokens are tracked server side; logging out or revoking a session takes effect immediately.
+- Sessions are revocable. `jwtManagement` runs in `refresh` mode: the access token lives 10 minutes, and the long-lived refresh token is a server-side session that `POST /api/auth/logout` kills at once. A stolen refresh token stops working the moment the user logs out; a stolen access token stays usable until it expires, which is the ceiling this design sets -- 10 minutes instead of the hour a plain plugin JWT gave. `logout`, `getSessions` and `revokeSession` are granted to the authenticated role and `refresh` to the public role, because refreshing happens without a valid access token.
 - Uploaded files are served with a `sandbox` Content-Security-Policy, so an uploaded HTML or SVG file cannot run script in the admin panel's origin.
 - Request body size, query depth, connection count, timeouts, CPU, and memory are limited.
 - CORS only permits the two local Strapi origins.

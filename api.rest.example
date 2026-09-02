@@ -14,7 +14,6 @@
 @userPassword =
 
 ### 1. Admin Section
-
 ### 1.1 Register Admin
 # @name adminRegister
 POST {{baseUrl}}/admin/auth/register-admin
@@ -52,7 +51,6 @@ GET {{baseUrl}}/admin/auth/users/me
 Authorization: Bearer {{adminLogin.response.body.$.data.token}}
 
 ### 2. User Section
-
 ### 2.1 User Register (Signup)
 # @name userRegister
 POST {{baseUrl}}/api/auth/register
