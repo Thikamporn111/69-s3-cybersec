@@ -1,5 +1,8 @@
 name: 69-s3-cybersec
 
+# Images are pinned by digest as well as tag. A tag can be overwritten upstream;
+# a digest cannot. Refresh a digest deliberately with `docker buildx imagetools
+# inspect <image>:<tag>` after reviewing the new release.
 x-logging: &default-logging
   driver: json-file
   options:
@@ -8,21 +11,17 @@ x-logging: &default-logging
 
 services:
   proxy:
-    image: nginxinc/nginx-unprivileged:1.30.4-alpine3.24
+    image: nginxinc/nginx-unprivileged:1.30.4-alpine3.24@sha256:45ce1e2e699234253d1def7baa96218a5d00b498d1ba0cbb1a17b6bdf73d1351
     container_name: 69-s3-proxy
     depends_on:
       strapi:
         condition: service_healthy
     ports:
-      - "127.0.0.1:${APP_PORT:-9093}:8443"
+      - "127.0.0.1:${APP_PORT:-9093}:8080"
     volumes:
       - type: bind
         source: ./security/nginx.conf
         target: /etc/nginx/nginx.conf
-        read_only: true
-      - type: bind
-        source: ./security/certs
-        target: /etc/nginx/certs
         read_only: true
     read_only: true
     tmpfs:
@@ -40,10 +39,12 @@ services:
       - app
 
   db:
-    image: postgres:16-alpine3.24
+    image: postgres:16-alpine3.24@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
     container_name: 69-s3-db
-    ports:
-      - "127.0.0.1:${DATABASE_HOST_PORT:-54327}:5432"
+    # No published port and no non-internal network. pgAdmin reaches the
+    # database over the internal `data` network; a shell is one
+    # `docker compose exec db psql` away. This also leaves the container with
+    # no route to the internet.
     environment:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
       POSTGRES_USER: ${DATABASE_USER:?Set DATABASE_USER in .env}
@@ -66,10 +67,9 @@ services:
     cpus: 1.00
     networks:
       - data
-      - db_host
 
   pgadmin:
-    image: dpage/pgadmin4:9.16
+    image: dpage/pgadmin4:9.16@sha256:40fa840c5bb7c8463957f1255b01283732c2d8c9396a956d180f8e6c296753b3
     container_name: 69-s3-admin
     depends_on:
       db:
@@ -85,7 +85,7 @@ services:
       PGADMIN_CONFIG_WTF_CSRF_ENABLED: "True"
       PGADMIN_CONFIG_SESSION_COOKIE_SAMESITE: "'Lax'"
       PGADMIN_CONFIG_SESSION_COOKIE_SECURE: "False"
-      PGADMIN_CONFIG_PASSWORD_LENGTH_MIN: "12"
+      PGADMIN_CONFIG_PASSWORD_LENGTH_MIN: "20"
       PGADMIN_CONFIG_MAX_LOGIN_ATTEMPTS: "5"
       PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: "False"
     volumes:
@@ -117,8 +117,8 @@ services:
       PORT: 1337
       XDG_CONFIG_HOME: /tmp/xdg-config
       XDG_CACHE_HOME: /tmp/xdg-cache
-      PUBLIC_URL: "https://localhost:${APP_PORT:-9093}"
-      CORS_ORIGINS: "https://localhost:${APP_PORT:-9093},https://127.0.0.1:${APP_PORT:-9093}"
+      PUBLIC_URL: "http://localhost:${APP_PORT:-9093}"
+      CORS_ORIGINS: "http://localhost:${APP_PORT:-9093},http://127.0.0.1:${APP_PORT:-9093}"
       DATABASE_CLIENT: postgres
       DATABASE_NAME: ${DATABASE_DB:?Set DATABASE_DB in .env}
       DATABASE_HOST: ${DATABASE_HOST:-db}
@@ -167,7 +167,5 @@ networks:
   data:
     driver: bridge
     internal: true
-  db_host:
-    driver: bridge
   pgadmin_host:
     driver: bridge

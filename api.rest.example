@@ -1,7 +1,7 @@
 # REST API request template
 # Fill in the blank values below before sending requests.
 
-# Use the HTTPS origin, for example https://localhost:9093
+# For example http://localhost:9093
 @baseUrl =
 
 @adminFirstName =

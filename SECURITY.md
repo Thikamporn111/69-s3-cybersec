@@ -4,26 +4,19 @@ This project is hardened for a local classroom lab. No application can guarantee
 
 ## Included controls
 
-- All host ports bind to `127.0.0.1`; PostgreSQL and pgAdmin are not reachable from the LAN.
-- Strapi is reachable only through an unprivileged Nginx reverse proxy, over TLS.
+- Every published port binds to `127.0.0.1`. PostgreSQL publishes no port at all and sits on an internal network with no route to the internet.
+- Strapi is reachable only through an unprivileged Nginx reverse proxy.
 - Authentication endpoints have rate limiting in both Nginx and Strapi. The strict Nginx zone covers every route that accepts or consumes a credential, a reset token, or an email trigger, and tolerates a trailing slash so a slash-suffixed request cannot escape it.
+- Sessions are revocable. `jwtManagement` runs in `refresh` mode, so access tokens are short lived and refresh tokens are tracked server side; logging out or revoking a session takes effect immediately.
 - Uploaded files are served with a `sandbox` Content-Security-Policy, so an uploaded HTML or SVG file cannot run script in the admin panel's origin.
 - Request body size, query depth, connection count, timeouts, CPU, and memory are limited.
 - CORS only permits the two local Strapi origins.
 - Containers use `no-new-privileges`; Nginx and Strapi drop all Linux capabilities.
 - Strapi runs in production mode as the non-root `node` user with a read-only root filesystem.
 - Remote transfer and unauthenticated OpenAPI endpoints are disabled.
-- JWT lifetime is one hour, and dependency versions are pinned by `package-lock.json`.
+- Every container image is pinned by digest as well as tag, and npm dependencies are pinned by `package-lock.json`.
 - Container logs are rotated at 10 MB with five files kept per service.
 - Database files, uploads, TLS keys, REST credentials, and `.env` files are excluded from Git and Docker build contexts.
-
-## TLS
-
-Nginx terminates TLS 1.2/1.3 on the published port using the self-signed certificate in `security/certs/`. Session cookies carry the `secure` flag. A plain HTTP request to that port returns a redirect to the HTTPS URL on the same port.
-
-`Strict-Transport-Security` is deliberately **not** sent. HSTS is scoped to the host name and ignores the port, so sending it for `localhost` would force HTTPS on every other localhost service on the machine. Enable it once this stack has a real hostname and a certificate from a trusted CA.
-
-pgAdmin is published directly rather than through the proxy, so it is still plain HTTP on `127.0.0.1` and its session cookie cannot carry the `secure` flag. Put it behind the proxy before using it anywhere but a single trusted machine.
 
 ## Storage location
 
@@ -41,18 +34,17 @@ Changing `DATABASE_PASSWORD` in `.env` does not update an already initialized Po
 
 ## Known gaps
 
-- JWTs cannot be revoked. `jwtManagement` is set to `legacy-support`, so a leaked token stays valid until it expires, and logout has no server-side effect.
-- Public registration is open and Strapi reports whether an email is already taken, which allows account enumeration. There is no CAPTCHA.
-- Container images are pinned by tag, not by digest, so a re-pull can bring a different image.
-- Strapi Community Edition has no MFA or SSO for administrators.
-- The PostgreSQL port is published to `127.0.0.1` even though only pgAdmin needs it, and the `db` container has outbound network access because publishing a port requires a non-internal network.
-- No encrypted, tested backups. `POSTGRES_DATA_PATH` points at live data, not a backup.
+These are accepted for a single-machine lab and must be closed before the stack is reachable from anywhere else.
+
+- **No TLS.** Traffic to `127.0.0.1` cannot be intercepted from the network, so a certificate buys nothing here while making every request harder to make. `security/certs/openssl.cnf` generates a local certificate in one command when it is needed. Note that HSTS must stay off for a `localhost` certificate: HSTS is scoped to the host name and ignores the port, so it would force HTTPS on every other localhost service on the machine. Strapi's helmet default is disabled in `config/middlewares.js` and stripped again at the proxy for that reason.
+- **Public registration is open** and Strapi reports whether an email is already taken, which allows account enumeration. There is no CAPTCHA.
+- **No MFA or SSO** for administrators; Strapi Community Edition does not offer either.
+- **No encrypted, tested backups.** `POSTGRES_DATA_PATH` points at live data, not a backup.
+- **Password reset cannot be completed through email.** The nodemailer sink transport discards every message while still writing `reset_password_token` to the database, so lab verification means reading that column. Never carry that practice into a real deployment.
 
 ## Before any public deployment
 
 Do not publish this classroom stack directly to the Internet. A real deployment additionally needs a certificate from a trusted CA with HSTS enabled, a trusted production email provider, MFA/SSO for administrators, CAPTCHA or an upstream bot-management service, centralized logs and alerts, encrypted backups, regular patching, and an external security review.
-
-The local lab intentionally discards outgoing email while still generating reset tokens. Configure a trusted production email provider before any real deployment.
 
 ## Upstream dependency status
 

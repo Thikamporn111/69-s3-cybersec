@@ -1,4 +1,4 @@
-FROM node:24.20.0-alpine3.23 AS build
+FROM node:24.20.0-alpine3.23@sha256:0388af2af070cd4736a1567cfed02469ba117848845b4165d87a333edb53d2ca AS build
 
 RUN apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev nasm bash vips-dev git
 
@@ -10,7 +10,7 @@ COPY . .
 ENV NODE_ENV=production
 RUN npm run build && npm prune --omit=dev
 
-FROM node:24.20.0-alpine3.23 AS runtime
+FROM node:24.20.0-alpine3.23@sha256:0388af2af070cd4736a1567cfed02469ba117848845b4165d87a333edb53d2ca AS runtime
 
 RUN apk add --no-cache vips
 
