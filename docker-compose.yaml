@@ -88,6 +88,12 @@ services:
       PGADMIN_CONFIG_PASSWORD_LENGTH_MIN: "20"
       PGADMIN_CONFIG_MAX_LOGIN_ATTEMPTS: "5"
       PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: "False"
+      # Refuse to store the database password inside pgadmin4.db. That file
+      # lives in ./data/pgadmin on the host, so anyone who copies the folder
+      # would otherwise carry a recoverable database credential with it.
+      # The password is typed per connection instead.
+      PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD: "False"
+      PGADMIN_CONFIG_ALLOW_SAVE_TUNNEL_PASSWORD: "False"
     volumes:
       - "${PGADMIN_DATA_PATH:-./data/pgadmin}:/var/lib/pgadmin"
     security_opt:
@@ -130,9 +136,18 @@ services:
       ADMIN_JWT_SECRET: ${STRAPI_ADMIN_JWT_SECRET:?Set STRAPI_ADMIN_JWT_SECRET in .env}
       TRANSFER_TOKEN_SALT: ${STRAPI_TRANSFER_TOKEN_SALT:?Set STRAPI_TRANSFER_TOKEN_SALT in .env}
       JWT_SECRET: ${STRAPI_JWT_SECRET:?Set STRAPI_JWT_SECRET in .env}
-      JWT_EXPIRES_IN: 1h
-      AUTH_RATE_LIMIT_INTERVAL_MS: 60000
-      AUTH_RATE_LIMIT_MAX: 5
+      # No JWT_EXPIRES_IN here. users-permissions runs with
+      # jwtManagement: 'refresh', where SESSION_ACCESS_TOKEN_LIFESPAN decides
+      # how long an access token lives. The old `JWT_EXPIRES_IN: 1h` did
+      # nothing in this mode but read like the ceiling was an hour.
+      SESSION_ACCESS_TOKEN_LIFESPAN: ${SESSION_ACCESS_TOKEN_LIFESPAN:-600}
+      SESSION_MAX_REFRESH_LIFESPAN: ${SESSION_MAX_REFRESH_LIFESPAN:-604800}
+      SESSION_IDLE_REFRESH_LIFESPAN: ${SESSION_IDLE_REFRESH_LIFESPAN:-86400}
+      SESSION_MAX_LIFESPAN: ${SESSION_MAX_LIFESPAN:-43200}
+      SESSION_IDLE_LIFESPAN: ${SESSION_IDLE_LIFESPAN:-3600}
+      SESSION_REFRESH_HTTPONLY: ${SESSION_REFRESH_HTTPONLY:-false}
+      AUTH_RATE_LIMIT_INTERVAL_MS: ${AUTH_RATE_LIMIT_INTERVAL_MS:-60000}
+      AUTH_RATE_LIMIT_MAX: ${AUTH_RATE_LIMIT_MAX:-10}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:1337/_health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 15s

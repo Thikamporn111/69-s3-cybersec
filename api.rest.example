@@ -1,17 +1,18 @@
-# REST API request template
-# Fill in the blank values below before sending requests.
-
-# For example http://localhost:9093
+# For example http://127.0.0.1:9093
 @baseUrl =
 
 @adminFirstName =
 @adminLastName =
 @adminEmail =
 @adminPassword =
+@adminResetCode = PASTE_ADMIN_RESET_TOKEN_HERE
+@adminResetPassword =
 
 @userUsername =
 @userEmail =
 @userPassword =
+@userResetCode = PASTE_USER_RESET_TOKEN_HERE
+@userResetPassword =
 
 ### 1. Admin Section
 ### 1.1 Register Admin
@@ -52,8 +53,19 @@ Content-Type: application/json
 GET {{baseUrl}}/admin/auth/users/me
 Authorization: Bearer {{adminLogin.response.body.$.data.token}}
 
+### 1.5 Admin Reset Password
+# @name adminResetPasswordRequest
+POST {{baseUrl}}/admin/auth/reset-password
+Content-Type: application/json
+
+{
+  "code": "{{adminResetCode}}",
+  "password": "{{adminResetPassword}}",
+  "passwordConfirmation": "{{adminResetPassword}}"
+}
+
 ### 2. User Section
-### 2.1 User Register 
+### 2.1 User Register
 # @name userRegister
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
@@ -87,3 +99,22 @@ Content-Type: application/json
 # @name userProfile
 GET {{baseUrl}}/api/auth/users/me
 Authorization: Bearer {{userLogin.response.body.$.jwt}}
+
+### 2.5 User Reset Password
+# @name userResetPasswordRequest
+POST {{baseUrl}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "code": "{{userResetCode}}",
+  "password": "{{userResetPassword}}",
+  "passwordConfirmation": "{{userResetPassword}}"
+}
+
+### 2.6 User Logout
+# @name userLogout
+POST {{baseUrl}}/api/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{userLogin.response.body.$.jwt}}
+
+{}

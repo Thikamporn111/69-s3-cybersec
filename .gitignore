@@ -8,6 +8,10 @@ api.rest
 security/certs/*.key
 security/certs/*.crt
 security/certs/*.pem
+security/certs/*.csr
+security/certs/*.srl
+security/certs/*.p12
+security/certs/*.pfx
 
 # Persistent services data must never be committed
 data/
@@ -30,5 +34,18 @@ Thumbs.db
 # Local pre-audit backups
 .backup-preaudit/
 
-# Local backup output
+# Local secret-rotation notes and generated environment files
+ROTATE-SECRETS.md
+env.new
+Claude outputs/
+
+# Local backup output. BACKUP_DIR should point outside the project anyway;
+# these patterns catch an encrypted dump that lands here by mistake.
 backups/
+*.sql
+*.sql.gz
+*.sql.gz.enc
+
+# Security monitor output (holds IPs, request paths, and attack payloads).
+scripts/reports/
+security/reports/
