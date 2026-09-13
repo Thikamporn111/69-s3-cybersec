@@ -13,15 +13,28 @@ module.exports = ({ env }) => ({
         idleRefreshTokenLifespan: env.int('SESSION_IDLE_REFRESH_LIFESPAN', 24 * 60 * 60),
         maxSessionLifespan: env.int('SESSION_MAX_LIFESPAN', 12 * 60 * 60),
         idleSessionLifespan: env.int('SESSION_IDLE_LIFESPAN', 60 * 60),
-        httpOnly: false,
+        // httpOnly=true would move the refresh token into an HttpOnly cookie, but in
+        // production that cookie is also flagged Secure and Strapi refuses to set
+        // Secure cookies over plain HTTP. This sandbox is HTTP-only (nginx on
+        // 127.0.0.1), so it stays false: the token is returned in the JSON body.
+        // No client in this repo reads refreshToken from the body for anything
+        // security-relevant beyond this sandbox. Flip to true only once the proxy
+        // terminates TLS.
+        httpOnly: env.bool('SESSION_REFRESH_HTTPONLY', false),
       },
       jwt: {
-        expiresIn: env('JWT_EXPIRES_IN', '1h'),
+        // Ignored while jwtManagement is 'refresh'. Kept short so that
+        // switching back to the plain plugin JWT does not silently restore a
+        // one-hour token that nothing can revoke.
+        expiresIn: env('JWT_EXPIRES_IN', '10m'),
       },
       ratelimit: {
         enabled: true,
         interval: env.int('AUTH_RATE_LIMIT_INTERVAL_MS', 60000),
-        max: env.int('AUTH_RATE_LIMIT_MAX', 5),
+        // Second line of defence behind the Nginx auth zone, keyed per path
+        // and per IP. Keep it at or below the proxy rate so bypassing one
+        // limiter still runs into the other.
+        max: env.int('AUTH_RATE_LIMIT_MAX', 10),
       },
       register: {
         allowedFields: [],

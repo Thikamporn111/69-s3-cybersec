@@ -8,6 +8,10 @@ module.exports = ({ env }) => [
       // for "localhost" would force HTTPS on every other localhost service on
       // this machine. Enable it once this stack has a real hostname.
       hsts: false,
+      // Helmet defaults apply to the admin panel and the API. The `sandbox`
+      // policy for uploaded files is set at the proxy instead, in
+      // security/nginx.conf under `location ^~ /uploads/`, because that is the
+      // only path by which an uploaded file reaches a browser.
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
