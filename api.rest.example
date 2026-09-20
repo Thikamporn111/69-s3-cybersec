@@ -1,18 +1,22 @@
 # For example http://127.0.0.1:9093
-@baseUrl =
+@baseUrl = http://{{$dotenv APP_HOST}}:{{$dotenv APP_PORT}}
 
-@adminFirstName =
-@adminLastName =
-@adminEmail =
-@adminPassword =
-@adminResetCode = PASTE_ADMIN_RESET_TOKEN_HERE
-@adminResetPassword =
+@adminFirstName = {{$dotenv STRAPI_ADMIN_FIRSTNAME}}
+@adminLastName = {{$dotenv STRAPI_ADMIN_LASTNAME}}
+@adminEmail = {{$dotenv STRAPI_ADMIN_EMAIL}}
+@adminPassword = {{$dotenv STRAPI_ADMIN_PASSWORD}}
+@adminResetCode = {{$dotenv STRAPI_ADMIN_RESET_TOKEN}}
+@adminResetPassword = {{$dotenv REST_ADMIN_RESET_PASSWORD}}
+@adminToken = {{$dotenv STRAPI_ADMIN_TOKEN}}
+@rememberMe = {{$dotenv REST_REMEMBER_ME}}
 
-@userUsername =
-@userEmail =
-@userPassword =
-@userResetCode = PASTE_USER_RESET_TOKEN_HERE
-@userResetPassword =
+@userUsername = {{$dotenv REST_USER_USERNAME}}
+@userEmail = {{$dotenv REST_USER_EMAIL}}
+@userPassword = {{$dotenv REST_USER_PASSWORD}}
+@userIdentifier = {{$dotenv REST_USER_IDENTIFIER}}
+@userResetCode = {{$dotenv REST_USER_RESET_CODE}}
+@userResetPassword = {{$dotenv REST_RESET_PASSWORD}}
+@userToken = {{$dotenv REST_USER_TOKEN}}
 
 ### 1. Admin Section
 ### 1.1 Register Admin
@@ -25,7 +29,7 @@ Content-Type: application/json
   "lastname": "{{adminLastName}}",
   "email": "{{adminEmail}}",
   "password": "{{adminPassword}}",
-  "rememberMe": true
+  "rememberMe": {{rememberMe}}
 }
 
 ### 1.2 Admin Login
@@ -36,7 +40,7 @@ Content-Type: application/json
 {
   "email": "{{adminEmail}}",
   "password": "{{adminPassword}}",
-  "rememberMe": true
+  "rememberMe": {{rememberMe}}
 }
 
 ### 1.3 Admin Forgot Password
@@ -51,7 +55,7 @@ Content-Type: application/json
 ### 1.4 Admin Profile
 # @name adminProfile
 GET {{baseUrl}}/admin/auth/users/me
-Authorization: Bearer {{adminLogin.response.body.$.data.token}}
+Authorization: Bearer {{adminToken}}
 
 ### 1.5 Admin Reset Password
 # @name adminResetPasswordRequest
@@ -63,6 +67,14 @@ Content-Type: application/json
   "password": "{{adminResetPassword}}",
   "passwordConfirmation": "{{adminResetPassword}}"
 }
+
+### 1.6 Admin Logout
+# @name adminLogout
+POST {{baseUrl}}/admin/logout
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{}
 
 ### 2. User Section
 ### 2.1 User Register
@@ -82,7 +94,7 @@ POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "identifier": "{{userEmail}}",
+  "identifier": "{{userIdentifier}}",
   "password": "{{userPassword}}"
 }
 
@@ -98,7 +110,7 @@ Content-Type: application/json
 ### 2.4 User Profile
 # @name userProfile
 GET {{baseUrl}}/api/auth/users/me
-Authorization: Bearer {{userLogin.response.body.$.jwt}}
+Authorization: Bearer {{userToken}}
 
 ### 2.5 User Reset Password
 # @name userResetPasswordRequest
@@ -115,6 +127,6 @@ Content-Type: application/json
 # @name userLogout
 POST {{baseUrl}}/api/auth/logout
 Content-Type: application/json
-Authorization: Bearer {{userLogin.response.body.$.jwt}}
+Authorization: Bearer {{userToken}}
 
 {}
