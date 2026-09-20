@@ -40,6 +40,32 @@ Prefer it over pasting a token into `api.rest` by hand.
 The Nginx auth zone allows 10 credential requests a minute; one full run spends
 5 of them. A `429` means you ran it twice inside a minute -- wait and retry.
 
+## Testing every REST route from `.env`
+
+`api.rest` (and the committed template `api.rest.example`) reads **every** input
+-- URL, request headers, and body -- from `.env`. Nothing is pasted into the
+file itself; `baseUrl` is built from `APP_HOST` and `APP_PORT`. Fill the values
+in `.env` first (see `.env.example` for the full list):
+
+- Admin: `STRAPI_ADMIN_FIRSTNAME`, `STRAPI_ADMIN_LASTNAME`,
+  `STRAPI_ADMIN_EMAIL`, `STRAPI_ADMIN_PASSWORD` (Register / Login / Forgot).
+- User: `REST_USER_USERNAME`, `REST_USER_EMAIL`, `REST_USER_IDENTIFIER`,
+  `REST_USER_PASSWORD`.
+- `REST_REMEMBER_ME` for the `rememberMe` field (`true` / `false`).
+- New-password targets: `REST_ADMIN_RESET_PASSWORD`, `REST_RESET_PASSWORD`.
+
+Two values are runtime and must be written back into `.env` as you go:
+
+- After **Login**, copy the returned Bearer token into `STRAPI_ADMIN_TOKEN`
+  (admin) or `REST_USER_TOKEN` (user) before running Profile / Logout.
+- After **Forgot Password**, read the reset code from PostgreSQL
+  (`reset_password_token` in `admin_users` / `up_users`) and put it into
+  `STRAPI_ADMIN_RESET_TOKEN` / `REST_USER_RESET_CODE` before Reset Password.
+
+Run the requests in order; routes that depend on a token or reset code return
+401 / 400 until its `.env` value is filled. Never commit `.env` or `api.rest`;
+`api.rest.example` and `.env.example` are the safe templates.
+
 ## Password reset and the token in the database
 
 The local lab uses a non-delivery email transport. Forgot Password generates
