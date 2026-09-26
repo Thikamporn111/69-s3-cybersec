@@ -86,12 +86,14 @@ the auth sections never needed them:
    and build into the image, so a fresh clone reproduces them without any
    Content-Type Builder work.
 
-2. **Grant permissions.** In Strapi Admin open *Settings > Users & Permissions
-   > Roles > Authenticated* and enable at least `create`, `find`, `findOne`
-   and `update` for *Student*, *Subject* and *Teacher*. Section 3 sends every
-   request with the user Bearer token from `2.2 User Login`, so without these
-   grants each request returns `403 Forbidden`. (`delete` is not exercised in
-   this lab.)
+2. **Permissions are granted automatically.** On every start the bootstrap in
+   `strapi/src/index.js` makes sure the *Authenticated* role has `create`,
+   `find`, `findOne` and `update` on *Student*, *Subject* and *Teacher* --
+   nothing more: `delete` is not granted and *Public* gets nothing. Section 3
+   sends every request with the user Bearer token from `2.2 User Login`, so
+   without these grants each request returns `403 Forbidden`. Unticking one of
+   these in *Settings > Users & Permissions > Roles* only lasts until the next
+   restart; change `strapi/src/index.js` to remove it for good.
 
 Then fill the content values in `.env`:
 
@@ -112,6 +114,15 @@ needs.
 The admin Bearer token from Section 1 is a separate credential and cannot
 authenticate the `/api/*` content routes; the user token from `2.2` is the one
 Section 3 reuses.
+
+### Automated check
+
+`run-content-test.cmd` (or `.un-content-test.ps1 -Cleanup`) registers a
+throwaway user, logs in, and runs all 12 Section 3 requests, checking each
+response body -- the new `documentId`, that List All contains it, that List
+with ID returns it, and that Update really changed the field. `-Cleanup`
+deletes the test records and user afterwards (in SQL, since the API has no
+delete route). It spends 2 of the 10 auth requests a minute.
 
 ## Password reset and the token in the database
 
