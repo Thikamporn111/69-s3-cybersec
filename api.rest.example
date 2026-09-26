@@ -18,6 +18,23 @@
 @userResetPassword = {{$dotenv REST_RESET_PASSWORD}}
 @userToken = {{$dotenv REST_USER_TOKEN}}
 
+@studentId = {{$dotenv REST_STUDENT_ID}}
+@studentCode = {{$dotenv REST_STUDENT_CODE}}
+@studentFirstname = {{$dotenv REST_STUDENT_FIRSTNAME}}
+@studentLastname = {{$dotenv REST_STUDENT_LASTNAME}}
+@studentEmail = {{$dotenv REST_STUDENT_EMAIL}}
+
+@subjectId = {{$dotenv REST_SUBJECT_ID}}
+@subjectCode = {{$dotenv REST_SUBJECT_CODE}}
+@subjectName = {{$dotenv REST_SUBJECT_NAME}}
+@subjectCredit = {{$dotenv REST_SUBJECT_CREDIT}}
+
+@teacherId = {{$dotenv REST_TEACHER_ID}}
+@teacherCode = {{$dotenv REST_TEACHER_CODE}}
+@teacherFirstname = {{$dotenv REST_TEACHER_FIRSTNAME}}
+@teacherLastname = {{$dotenv REST_TEACHER_LASTNAME}}
+@teacherEmail = {{$dotenv REST_TEACHER_EMAIL}}
+
 ### 1. Admin Section
 ### 1.1 Register Admin
 # @name adminRegister
@@ -130,3 +147,131 @@ Content-Type: application/json
 Authorization: Bearer {{userToken}}
 
 {}
+
+### 3. Content Section
+# The content API is authenticated with the SAME user Bearer token produced by
+# 2.2 User Login; the admin token from Section 1 is a different token type.
+# Before running 3.1.3 / 3.1.4, copy the response `documentId` of the created
+# record (Strapi 5 uses documentId, not the numeric id) into the matching
+# REST_*_ID value in `.env`.
+
+### 3.1 Student
+### 3.1.1 Create Student
+# @name studentCreate
+POST {{baseUrl}}/api/students
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "data": {
+    "studentCode": "{{studentCode}}",
+    "firstname": "{{studentFirstname}}",
+    "lastname": "{{studentLastname}}",
+    "email": "{{studentEmail}}"
+  }
+}
+
+### 3.1.2 List All Students
+# @name studentListAll
+GET {{baseUrl}}/api/students
+Authorization: Bearer {{userToken}}
+
+### 3.1.3 List Student with ID
+# @name studentListOne
+GET {{baseUrl}}/api/students/{{studentId}}
+Authorization: Bearer {{userToken}}
+
+### 3.1.4 Update Student
+# @name studentUpdate
+PUT {{baseUrl}}/api/students/{{studentId}}
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "data": {
+    "studentCode": "{{studentCode}}",
+    "firstname": "{{studentFirstname}}",
+    "lastname": "{{studentLastname}}",
+    "email": "{{studentEmail}}"
+  }
+}
+
+### 3.2 Subject
+### 3.2.1 Create Subject
+# @name subjectCreate
+POST {{baseUrl}}/api/subjects
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "data": {
+    "code": "{{subjectCode}}",
+    "name": "{{subjectName}}",
+    "credit": {{subjectCredit}}
+  }
+}
+
+### 3.2.2 List All Subjects
+# @name subjectListAll
+GET {{baseUrl}}/api/subjects
+Authorization: Bearer {{userToken}}
+
+### 3.2.3 List Subject with ID
+# @name subjectListOne
+GET {{baseUrl}}/api/subjects/{{subjectId}}
+Authorization: Bearer {{userToken}}
+
+### 3.2.4 Update Subject
+# @name subjectUpdate
+PUT {{baseUrl}}/api/subjects/{{subjectId}}
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "data": {
+    "code": "{{subjectCode}}",
+    "name": "{{subjectName}}",
+    "credit": {{subjectCredit}}
+  }
+}
+
+### 3.3 Teacher
+### 3.3.1 Create Teacher
+# @name teacherCreate
+POST {{baseUrl}}/api/teachers
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "data": {
+    "teacherCode": "{{teacherCode}}",
+    "firstname": "{{teacherFirstname}}",
+    "lastname": "{{teacherLastname}}",
+    "email": "{{teacherEmail}}"
+  }
+}
+
+### 3.3.2 List All Teachers
+# @name teacherListAll
+GET {{baseUrl}}/api/teachers
+Authorization: Bearer {{userToken}}
+
+### 3.3.3 List Teacher with ID
+# @name teacherListOne
+GET {{baseUrl}}/api/teachers/{{teacherId}}
+Authorization: Bearer {{userToken}}
+
+### 3.3.4 Update Teacher
+# @name teacherUpdate
+PUT {{baseUrl}}/api/teachers/{{teacherId}}
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "data": {
+    "teacherCode": "{{teacherCode}}",
+    "firstname": "{{teacherFirstname}}",
+    "lastname": "{{teacherLastname}}",
+    "email": "{{teacherEmail}}"
+  }
+}

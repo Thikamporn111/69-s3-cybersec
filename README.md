@@ -53,6 +53,9 @@ in `.env` first (see `.env.example` for the full list):
   `REST_USER_PASSWORD`.
 - `REST_REMEMBER_ME` for the `rememberMe` field (`true` / `false`).
 - New-password targets: `REST_ADMIN_RESET_PASSWORD`, `REST_RESET_PASSWORD`.
+- Content payloads (Section 3): `REST_STUDENT_*`, `REST_SUBJECT_*` and
+  `REST_TEACHER_*`. Their `REST_*_ID` values are runtime -- fill them from the
+  Create responses before List-with-ID / Update (see below).
 
 Two values are runtime and must be written back into `.env` as you go:
 
@@ -65,6 +68,50 @@ Two values are runtime and must be written back into `.env` as you go:
 Run the requests in order; routes that depend on a token or reset code return
 401 / 400 until its `.env` value is filled. Never commit `.env` or `api.rest`;
 `api.rest.example` and `.env.example` are the safe templates.
+
+## Section 3: content API (student / subject / teacher)
+
+Section 3 of `api.rest` performs Create / List All / List with ID / Update on
+three content types. Two things in Strapi have to be prepared first, because
+the auth sections never needed them:
+
+1. **Rebuild Strapi** so the content types shipped in `strapi/src/api/`
+   (`student`, `subject`, `teacher`) exist in the running instance:
+
+   ```
+   docker compose up -d --build strapi
+   ```
+
+   Their prototypes live in `strapi/src/api/<name>/content-types/<name>/schema.json`
+   and build into the image, so a fresh clone reproduces them without any
+   Content-Type Builder work.
+
+2. **Grant permissions.** In Strapi Admin open *Settings > Users & Permissions
+   > Roles > Authenticated* and enable at least `create`, `find`, `findOne`
+   and `update` for *Student*, *Subject* and *Teacher*. Section 3 sends every
+   request with the user Bearer token from `2.2 User Login`, so without these
+   grants each request returns `403 Forbidden`. (`delete` is not exercised in
+   this lab.)
+
+Then fill the content values in `.env`:
+
+- `REST_STUDENT_CODE` / `REST_SUBJECT_CODE` / `REST_TEACHER_CODE` are required
+  unique fields: a second Create with the same code returns a `400` validation
+  error, so use a fresh code per run.
+- `REST_SUBJECT_CREDIT` is a JSON number and must not be quoted.
+- `REST_STUDENT_ID` / `REST_SUBJECT_ID` / `REST_TEACHER_ID` stay empty until
+  the Create requests have run.
+
+Flow: after `2.2 User Login` put a fresh token into `REST_USER_TOKEN`, run
+`3.1.1 Create Student` (plus `3.2.1` and `3.3.1`), copy each response's
+`data.documentId` into the matching `REST_*_ID`, then run List All, List with
+ID and Update. Strapi 5 identifies one document by its `documentId` -- a
+string, not the numeric `id` in the response -- and that is the value the URL
+needs.
+
+The admin Bearer token from Section 1 is a separate credential and cannot
+authenticate the `/api/*` content routes; the user token from `2.2` is the one
+Section 3 reuses.
 
 ## Password reset and the token in the database
 
