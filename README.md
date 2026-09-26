@@ -103,7 +103,7 @@ Then fill the content values in `.env`:
   the Create requests have run.
 
 Flow: after `2.2 User Login` put a fresh token into `REST_USER_TOKEN`, run
-`3.1.1 Create Student` (plus `3.2.1` and `3.3.1`), copy each response's
+`3.1.1 Create` (plus `3.2.1` and `3.3.1`), copy each response's
 `data.documentId` into the matching `REST_*_ID`, then run List All, List with
 ID and Update. Strapi 5 identifies one document by its `documentId` -- a
 string, not the numeric `id` in the response -- and that is the value the URL

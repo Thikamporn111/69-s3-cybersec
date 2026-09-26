@@ -148,7 +148,7 @@ Authorization: Bearer {{userToken}}
 
 {}
 
-### 3. Content Section
+### 3. Content section
 # The content API is authenticated with the SAME user Bearer token produced by
 # 2.2 User Login; the admin token from Section 1 is a different token type.
 # Before running 3.1.3 / 3.1.4, copy the response `documentId` of the created
@@ -156,7 +156,7 @@ Authorization: Bearer {{userToken}}
 # REST_*_ID value in `.env`.
 
 ### 3.1 Student
-### 3.1.1 Create Student
+### 3.1.1 Create
 # @name studentCreate
 POST {{baseUrl}}/api/students
 Content-Type: application/json
@@ -171,17 +171,17 @@ Authorization: Bearer {{userToken}}
   }
 }
 
-### 3.1.2 List All Students
+### 3.1.2 List All
 # @name studentListAll
 GET {{baseUrl}}/api/students
 Authorization: Bearer {{userToken}}
 
-### 3.1.3 List Student with ID
+### 3.1.3 List with ID
 # @name studentListOne
 GET {{baseUrl}}/api/students/{{studentId}}
 Authorization: Bearer {{userToken}}
 
-### 3.1.4 Update Student
+### 3.1.4 Update
 # @name studentUpdate
 PUT {{baseUrl}}/api/students/{{studentId}}
 Content-Type: application/json
@@ -197,7 +197,7 @@ Authorization: Bearer {{userToken}}
 }
 
 ### 3.2 Subject
-### 3.2.1 Create Subject
+### 3.2.1 Create
 # @name subjectCreate
 POST {{baseUrl}}/api/subjects
 Content-Type: application/json
@@ -211,17 +211,17 @@ Authorization: Bearer {{userToken}}
   }
 }
 
-### 3.2.2 List All Subjects
+### 3.2.2 List All
 # @name subjectListAll
 GET {{baseUrl}}/api/subjects
 Authorization: Bearer {{userToken}}
 
-### 3.2.3 List Subject with ID
+### 3.2.3 List with ID
 # @name subjectListOne
 GET {{baseUrl}}/api/subjects/{{subjectId}}
 Authorization: Bearer {{userToken}}
 
-### 3.2.4 Update Subject
+### 3.2.4 Update
 # @name subjectUpdate
 PUT {{baseUrl}}/api/subjects/{{subjectId}}
 Content-Type: application/json
@@ -236,7 +236,7 @@ Authorization: Bearer {{userToken}}
 }
 
 ### 3.3 Teacher
-### 3.3.1 Create Teacher
+### 3.3.1 Create
 # @name teacherCreate
 POST {{baseUrl}}/api/teachers
 Content-Type: application/json
@@ -251,17 +251,17 @@ Authorization: Bearer {{userToken}}
   }
 }
 
-### 3.3.2 List All Teachers
+### 3.3.2 List All
 # @name teacherListAll
 GET {{baseUrl}}/api/teachers
 Authorization: Bearer {{userToken}}
 
-### 3.3.3 List Teacher with ID
+### 3.3.3 List with ID
 # @name teacherListOne
 GET {{baseUrl}}/api/teachers/{{teacherId}}
 Authorization: Bearer {{userToken}}
 
-### 3.3.4 Update Teacher
+### 3.3.4 Update
 # @name teacherUpdate
 PUT {{baseUrl}}/api/teachers/{{teacherId}}
 Content-Type: application/json
